@@ -1,0 +1,164 @@
+/**
+ * 연금 계산기 - 공통 계산 로직
+ * 아래 계산식은 국민연금법 / 공무원연금법 / 군인연금법 / 사립학교교직원 연금법에
+ * 규정된 공식 산정 구조를 단순화하여 근사치를 산출하는 참고용 로직입니다.
+ * 실제 급여 결정 기준소득 재평가, 물가상승률 반영, 부양가족연금, 감액/가산 특례 등은
+ * 반영되어 있지 않으므로 정확한 수급액은 반드시 해당 연금공단을 통해 확인해야 합니다.
+ */
+
+function formatWon(n) {
+  var rounded = Math.round(n);
+  return rounded.toLocaleString("ko-KR") + "원";
+}
+
+function formatManwon(n) {
+  return Math.round(n).toLocaleString("ko-KR") + "만원";
+}
+
+function clampNonNegative(n) {
+  return isFinite(n) && n > 0 ? n : 0;
+}
+
+/* -------------------------------------------------------------------------
+   국민연금 (National Pension)
+   국민연금공단이 공표하는 예상연금월액표(가입기간 × 평균소득월액별 공식 표)의
+   실제 수치를 앵커 포인트로 삼아 선형 보간/외삽하는 방식으로 계산합니다.
+   각 가입기간(10/20/30/40년) 구간에서 월 수급액은 평균소득월액(B)에 대해
+   매우 높은 선형성을 보이므로, 구간별 절편(a)과 기울기(b)를 이용해
+   monthly = a(years) + b(years) × B 형태로 근사합니다.
+   ------------------------------------------------------------------------- */
+function nationalPensionCoefficients(years) {
+  // 앵커: (10년, 20년) 구간과 (20년 이상) 구간의 절편(a)·기울기(b)
+  var a10 = 171650, b10 = 0.05375;
+  var a20 = 257476, b20 = 0.080624;
+  var slopeA20plus = 17165, slopeB20plus = 0.005375;
+
+  if (years <= 20) {
+    var t = (years - 10) / 10;
+    return {
+      a: a10 + (a20 - a10) * t,
+      b: b10 + (b20 - b10) * t
+    };
+  }
+  return {
+    a: a20 + slopeA20plus * (years - 20),
+    b: b20 + slopeB20plus * (years - 20)
+  };
+}
+
+function calcNationalPension(input) {
+  var totalMonths = input.years * 12 + input.months;
+  var avgIncomeMonthly = input.avgIncomeManwon * 10000; // 만원 -> 원
+
+  if (totalMonths <= 0 || avgIncomeMonthly <= 0) {
+    return { error: "가입기간과 평균 소득월액을 올바르게 입력해 주세요." };
+  }
+
+  var years = totalMonths / 12;
+  var coef = nationalPensionCoefficients(years);
+  var monthly = clampNonNegative(coef.a + coef.b * avgIncomeMonthly);
+
+  var eligible = totalMonths >= 120; // 최소 가입기간 10년
+
+  return {
+    monthly: monthly,
+    yearly: monthly * 12,
+    totalMonths: totalMonths,
+    eligible: eligible
+  };
+}
+
+/* -------------------------------------------------------------------------
+   국민연금 수급개시연령 (출생연도 기준, 노령연금)
+   ------------------------------------------------------------------------- */
+function nationalPensionStartAge(birthYear) {
+  if (birthYear <= 1952) return 60;
+  if (birthYear <= 1956) return 61;
+  if (birthYear <= 1960) return 62;
+  if (birthYear <= 1964) return 63;
+  if (birthYear <= 1968) return 64;
+  return 65;
+}
+
+/* -------------------------------------------------------------------------
+   공무원연금 / 군인연금 / 사학연금 (직역연금 공통 구조)
+   연금월액 = 평균기준소득월액 × Σ(재직연도별 적용비율)
+   2016년 공무원연금법 개정에 따른 재직기간 1년당 적용비율(신법) 단계적 인하 구조를 근사 반영:
+     2015년 이전            : 연 1.9% (구법 단순 근사치)
+     2016~2019년            : 1.878% → 1.797% (연 0.027%p씩 단계적 인하)
+     2020~2035년            : 1.7% → 1.0% (연 약 0.0467%p씩 단계적 인하)
+     2036년 이후             : 1.0% 고정
+   군인연금 및 사학연금은 공무원연금 산정방식을 준용하는 구조를 근사 적용합니다.
+   ------------------------------------------------------------------------- */
+function occupationalAnnualRatePercent(year) {
+  if (year <= 2015) return 1.9;
+  if (year <= 2019) {
+    // 2016: 1.878, 2017: 1.851, 2018: 1.824, 2019: 1.797
+    return 1.878 - (year - 2016) * 0.027;
+  }
+  if (year <= 2035) {
+    return 1.7 - (year - 2020) * (0.7 / 15);
+  }
+  return 1.0;
+}
+
+function calcOccupationalPension(input) {
+  var totalMonths = input.years * 12 + input.months;
+  var avgIncomeMonthly = input.avgIncomeManwon * 10000;
+
+  if (totalMonths <= 0 || avgIncomeMonthly <= 0 || !input.retireYear) {
+    return { error: "재직기간, 평균 기준소득월액, 퇴직(예정)연도를 올바르게 입력해 주세요." };
+  }
+
+  var serviceYearsFull = totalMonths / 12;
+  var startYear = Math.round(input.retireYear - serviceYearsFull);
+
+  var rateSumPercent = 0;
+  var yearCount = 0;
+  for (var y = startYear; y < input.retireYear; y++) {
+    rateSumPercent += occupationalAnnualRatePercent(y);
+    yearCount++;
+  }
+  if (yearCount === 0) {
+    rateSumPercent = occupationalAnnualRatePercent(input.retireYear) * serviceYearsFull;
+    yearCount = 1;
+  }
+
+  // 실제 근무연수(월단위 소수 포함) 비율로 환산
+  var avgAnnualRate = rateSumPercent / yearCount;
+  var totalRatePercent = avgAnnualRate * serviceYearsFull;
+
+  // 최대 지급률 상한 (근사치: 대략 재직기간 36년 수준에서 포화되는 구조를 단순 반영)
+  var cappedRatePercent = Math.min(totalRatePercent, 76.5);
+
+  var monthly = avgIncomeMonthly * (cappedRatePercent / 100);
+
+  var eligible = totalMonths >= 120; // 최소 재직기간 10년 (2016년 이후 임용 기준)
+
+  return {
+    monthly: clampNonNegative(monthly),
+    yearly: clampNonNegative(monthly) * 12,
+    totalMonths: totalMonths,
+    ratePercent: cappedRatePercent,
+    avgAnnualRate: avgAnnualRate,
+    startYear: startYear,
+    eligible: eligible
+  };
+}
+
+/* -------------------------------------------------------------------------
+   폼 유틸리티
+   ------------------------------------------------------------------------- */
+function getNumberValue(id) {
+  var el = document.getElementById(id);
+  if (!el) return NaN;
+  var v = parseFloat(el.value);
+  return isNaN(v) ? 0 : v;
+}
+
+function showError(panelId, message) {
+  var panel = document.getElementById(panelId);
+  panel.innerHTML =
+    '<div class="error-box">⚠ ' + message + "</div>" +
+    '<div class="result-empty"><div class="icon">🧮</div><p>입력값을 확인한 뒤 다시 계산해 주세요.</p></div>';
+}

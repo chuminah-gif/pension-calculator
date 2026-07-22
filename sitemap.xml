@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://www.yourdomain.com/index.html</loc><priority>1.0</priority></url>
+  <url><loc>https://www.yourdomain.com/calculators/national-pension.html</loc><priority>0.9</priority></url>
+  <url><loc>https://www.yourdomain.com/calculators/civil-servant-pension.html</loc><priority>0.9</priority></url>
+  <url><loc>https://www.yourdomain.com/calculators/military-pension.html</loc><priority>0.9</priority></url>
+  <url><loc>https://www.yourdomain.com/calculators/private-school-pension.html</loc><priority>0.9</priority></url>
+  <url><loc>https://www.yourdomain.com/guide/index.html</loc><priority>0.8</priority></url>
+  <url><loc>https://www.yourdomain.com/guide/national-pension-guide.html</loc><priority>0.7</priority></url>
+  <url><loc>https://www.yourdomain.com/guide/civil-servant-pension-guide.html</loc><priority>0.7</priority></url>
+  <url><loc>https://www.yourdomain.com/guide/military-pension-guide.html</loc><priority>0.7</priority></url>
+  <url><loc>https://www.yourdomain.com/guide/private-school-pension-guide.html</loc><priority>0.7</priority></url>
+  <url><loc>https://www.yourdomain.com/about.html</loc><priority>0.5</priority></url>
+  <url><loc>https://www.yourdomain.com/contact.html</loc><priority>0.4</priority></url>
+  <url><loc>https://www.yourdomain.com/privacy.html</loc><priority>0.3</priority></url>
+  <url><loc>https://www.yourdomain.com/terms.html</loc><priority>0.3</priority></url>
+</urlset>

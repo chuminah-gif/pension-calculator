@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>국민연금 완전 정리 | 가입 대상, 산정 방식, 수급 요건 - 연금랩</title>
+<meta name="description" content="국민연금의 가입 대상과 종류, 보험료 산정 기준, 기본연금액 계산 방식, 수급개시연령, 조기·연기 노령연금 제도를 알기 쉽게 정리했습니다." />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css" />
+<link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="../index.html" class="logo"><span class="logo-mark">연</span> 연금랩</a>
+    <nav class="main-nav">
+      <a href="../index.html">홈</a>
+      <a href="../calculators/national-pension.html">국민연금</a>
+      <a href="../calculators/civil-servant-pension.html">공무원연금</a>
+      <a href="../calculators/military-pension.html">군인연금</a>
+      <a href="../calculators/private-school-pension.html">사학연금</a>
+      <a href="index.html" class="active">연금가이드</a>
+      <a href="../about.html">사이트소개</a>
+    </nav>
+    <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="../index.html">홈</a> / <a href="index.html">연금가이드</a> / 국민연금</p>
+    <h1>국민연금 완전 정리</h1>
+    <p>가입 대상부터 산정 방식, 수급 요건까지 국민연금의 핵심 내용을 정리했습니다.</p>
+  </div>
+</section>
+
+<div class="container section">
+  <div class="card prose">
+
+    <h2>국민연금이란?</h2>
+    <p>국민연금은 1988년 도입된 대한민국의 대표적인 공적 사회보험 제도로, 국내에 거주하는 만 18세 이상 60세 미만 국민을 원칙적으로 가입 대상으로 합니다. 가입자가 소득 활동을 하는 동안 매월 보험료를 납부하면, 노령·장애·사망 등의 사유가 발생했을 때 본인 또는 유족에게 연금 또는 일시금을 지급하여 소득이 단절되었을 때의 생활 안정을 돕는 것을 목적으로 합니다.</p>
+
+    <h2>가입자의 종류</h2>
+    <ul>
+      <li><strong>사업장가입자</strong>: 1인 이상 근로자를 사용하는 사업장에 종사하는 근로자와 사용자</li>
+      <li><strong>지역가입자</strong>: 사업장가입자가 아닌 자로서 소득이 있는 만 18세 이상 60세 미만인 자</li>
+      <li><strong>임의가입자</strong>: 사업장가입자·지역가입자가 될 수 없는 사람이 본인의 희망에 따라 가입하는 경우</li>
+      <li><strong>임의계속가입자</strong>: 60세에 도달했지만 가입기간이 부족해 연금 수급을 위해 계속 가입을 신청한 경우</li>
+    </ul>
+
+    <h2>보험료와 기준소득월액</h2>
+    <p>국민연금 보험료는 가입자의 기준소득월액에 보험료율(현재 9%, 사업장가입자는 근로자와 사용자가 각각 4.5%씩 부담)을 곱해 산정합니다. 기준소득월액에는 매년 조정되는 상한액과 하한액이 있어, 실제 소득이 이 범위를 벗어나더라도 상한액 또는 하한액을 기준으로 보험료가 부과됩니다.</p>
+
+    <h2>기본연금액 산정 방식</h2>
+    <p>노령연금 수급액을 결정하는 기본연금액은 아래와 같은 구조로 산정됩니다.</p>
+    <table>
+      <tr><th>구성 요소</th><th>의미</th></tr>
+      <tr><td>A값</td><td>연금 수급 전 3년간 전체 국민연금 가입자의 평균소득월액의 평균 (매년 변경 고시)</td></tr>
+      <tr><td>B값</td><td>가입자 개인의 가입기간 중 기준소득월액을 매년 재평가하여 산출한 평균액</td></tr>
+      <tr><td>가입기간 가산</td><td>20년을 초과하는 가입기간에 대해 초과 연수만큼 5%p씩 가산</td></tr>
+      <tr><td>지급률</td><td>가입기간 10년 시점 50%에서 시작해 1개월마다 5/12%p씩 증가하는 별도의 지급률이 최종 금액에 추가로 적용됩니다</td></tr>
+    </table>
+    <p>이 구조 때문에 국민연금은 소득이 낮은 가입자에게 상대적으로 유리한 <strong>소득재분배 기능</strong>을 갖고 있습니다. A값이 반영되어 있어, 개인 소득(B값)이 낮을수록 전체 평균(A값)의 비중이 커지고, 이는 저소득 가입자의 실질 소득대체율을 높이는 효과로 이어집니다. 이처럼 실제 산정식은 여러 계수가 중첩 적용되는 복잡한 구조이므로, 이 사이트의 계산기는 국민연금공단이 공개한 예상연금월액표의 실제 수치를 기준으로 보간하는 방식을 사용합니다.</p>
+
+    <h2>수급 요건과 수급개시연령</h2>
+    <p>노령연금을 받으려면 최소 가입기간 10년(120개월)을 채워야 합니다. 수급개시연령은 출생연도에 따라 아래와 같이 단계적으로 상향 조정되었습니다.</p>
+    <table>
+      <tr><th>출생연도</th><th>노령연금 수급개시연령</th></tr>
+      <tr><td>1953~1956년생</td><td>61세</td></tr>
+      <tr><td>1957~1960년생</td><td>62세</td></tr>
+      <tr><td>1961~1964년생</td><td>63세</td></tr>
+      <tr><td>1965~1968년생</td><td>64세</td></tr>
+      <tr><td>1969년생 이후</td><td>65세</td></tr>
+    </table>
+
+    <h2>조기노령연금과 연기연금</h2>
+    <p>가입기간 10년 이상을 채우고 소득이 없는 경우, 수급개시연령보다 최대 5년 앞당겨 <strong>조기노령연금</strong>을 신청할 수 있습니다. 다만 1년 앞당길 때마다 연금액이 약 6%씩 감액되어, 최대 5년을 앞당기면 약 30% 감액된 금액을 받게 됩니다. 반대로 수급개시연령 이후 최대 5년까지 수급을 미루는 <strong>연기연금</strong>을 신청하면, 1년마다 약 7.2%씩 연금액이 가산됩니다.</p>
+
+    <div class="info-callout">
+      국민연금의 정확한 예상 수급액은 국민연금공단 홈페이지의 '내 연금 알아보기' 또는 국민연금공단 콜센터(국번없이 1355)를 통해 확인할 수 있습니다. 이 가이드와 계산기는 제도 이해를 돕기 위한 참고 자료입니다.
+    </div>
+
+    <h2>자주 묻는 질문</h2>
+    <h3>Q. 가입기간이 10년이 안 되면 낸 보험료는 어떻게 되나요?</h3>
+    <p>60세 도달 시점까지 가입기간이 10년 미만이면 노령연금 대신 그동안 납부한 보험료에 이자를 더한 반환일시금을 받거나, 임의계속가입을 통해 가입기간을 채울 수 있습니다.</p>
+    <h3>Q. 직장을 여러 번 옮기면 가입기간이 끊기나요?</h3>
+    <p>아니요. 사업장가입자에서 지역가입자로, 또는 그 반대로 자격이 바뀌더라도 국민연금 가입기간은 통산되어 합산됩니다.</p>
+    <h3>Q. 국민연금과 다른 연금을 동시에 받을 수 있나요?</h3>
+    <p>국민연금은 공무원연금·군인연금·사학연금 등 직역연금과 별도로 운영되지만, 과거에는 직역연금 가입자가 국민연금에 동시 가입할 수 없었습니다. 이직 등으로 제도가 바뀐 경우 연계제도를 통해 가입기간을 합산할 수 있는지 국민연금공단에 확인하는 것이 좋습니다.</p>
+
+    <p style="margin-top:28px;"><a href="../calculators/national-pension.html" class="btn btn-secondary">국민연금 계산기로 예상 수급액 확인하기 →</a></p>
+  </div>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>연금랩</h4>
+        <p>국민연금·공무원연금·군인연금·사학연금의 예상 수급액을 누구나 쉽게 계산해볼 수 있는 무료 정보 제공 사이트입니다. 본 사이트는 특정 금융상품을 권유하거나 투자자문을 제공하지 않습니다.</p>
+      </div>
+      <div>
+        <h4>연금 계산기</h4>
+        <ul>
+          <li><a href="../calculators/national-pension.html">국민연금 계산기</a></li>
+          <li><a href="../calculators/civil-servant-pension.html">공무원연금 계산기</a></li>
+          <li><a href="../calculators/military-pension.html">군인연금 계산기</a></li>
+          <li><a href="../calculators/private-school-pension.html">사학연금 계산기</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>사이트 정보</h4>
+        <ul>
+          <li><a href="../about.html">사이트 소개</a></li>
+          <li><a href="index.html">연금 가이드</a></li>
+          <li><a href="../contact.html">문의하기</a></li>
+          <li><a href="../privacy.html">개인정보처리방침</a></li>
+          <li><a href="../terms.html">이용약관</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 연금랩. All rights reserved.</span>
+      <span>본 사이트의 계산 결과는 참고용이며 법적 효력이 없습니다.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="../js/main.js"></script>
+</body>
+</html>

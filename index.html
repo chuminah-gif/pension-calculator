@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>연금랩 | 국민연금·공무원연금·군인연금·사학연금 예상 수급액 계산기</title>
+<meta name="description" content="국민연금, 공무원연금, 군인연금, 사학연금의 예상 월 수급액을 간단히 계산해보는 무료 연금 계산기입니다. 가입기간과 소득 정보를 입력하면 공식 산정식을 기반으로 한 추정 연금액을 확인할 수 있습니다." />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="index.html" class="logo"><span class="logo-mark">연</span> 연금랩</a>
+    <nav class="main-nav">
+      <a href="index.html" class="active">홈</a>
+      <a href="calculators/national-pension.html">국민연금</a>
+      <a href="calculators/civil-servant-pension.html">공무원연금</a>
+      <a href="calculators/military-pension.html">군인연금</a>
+      <a href="calculators/private-school-pension.html">사학연금</a>
+      <a href="guide/index.html">연금가이드</a>
+      <a href="about.html">사이트소개</a>
+    </nav>
+    <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="container">
+    <p class="breadcrumb">무료 연금 예상 수급액 계산기</p>
+    <h1>내 연금, 미리 계산해보세요</h1>
+    <p>국민연금·공무원연금·군인연금·사학연금 가입 정보를 입력하면, 공식 산정 구조를 바탕으로 예상 월 수급액을 바로 확인할 수 있습니다. 은퇴 후 자금 계획을 세우는 데 참고해보세요.</p>
+  </div>
+</section>
+
+<div class="container">
+  <div class="pension-grid">
+    <a class="pension-card" href="calculators/national-pension.html">
+      <div class="icon">🏢</div>
+      <h3>국민연금 계산기</h3>
+      <p>가입기간과 평균소득을 입력해 예상 노령연금 월 수급액을 계산합니다.</p>
+      <span class="go">계산하러 가기 →</span>
+    </a>
+    <a class="pension-card" href="calculators/civil-servant-pension.html">
+      <div class="icon">🏛️</div>
+      <h3>공무원연금 계산기</h3>
+      <p>재직기간과 평균기준소득월액으로 퇴직연금 예상액을 계산합니다.</p>
+      <span class="go">계산하러 가기 →</span>
+    </a>
+    <a class="pension-card" href="calculators/military-pension.html">
+      <div class="icon">🎖️</div>
+      <h3>군인연금 계산기</h3>
+      <p>복무기간을 기준으로 예상 퇴역연금 월 수급액을 계산합니다.</p>
+      <span class="go">계산하러 가기 →</span>
+    </a>
+    <a class="pension-card" href="calculators/private-school-pension.html">
+      <div class="icon">🎓</div>
+      <h3>사학연금 계산기</h3>
+      <p>사립학교 교직원의 재직기간 기준 예상 퇴직연금을 계산합니다.</p>
+      <span class="go">계산하러 가기 →</span>
+    </a>
+  </div>
+</div>
+
+<section class="section">
+  <div class="container">
+    <h2 class="section-title">왜 연금랩인가요?</h2>
+    <p class="section-desc">4대 공적연금의 산정 구조를 하나의 사이트에서 비교하고, 로그인이나 개인정보 제공 없이 간편하게 예상 수급액을 확인할 수 있습니다.</p>
+    <div class="pension-grid" style="margin-top:0;">
+      <div class="pension-card">
+        <div class="icon">🔒</div>
+        <h3>회원가입 없이 이용</h3>
+        <p>출생연도·소득·가입기간 등 계산에 입력한 구체적인 정보는 서버로 전송되지 않고 브라우저에서만 처리됩니다.</p>
+      </div>
+      <div class="pension-card">
+        <div class="icon">📐</div>
+        <h3>공식 산정식 기반</h3>
+        <p>각 연금법에 규정된 산정 공식 구조를 반영해 실제와 유사한 추정치를 제공합니다.</p>
+      </div>
+      <div class="pension-card">
+        <div class="icon">📚</div>
+        <h3>연금 가이드 제공</h3>
+        <p>각 연금 제도의 수급 요건, 산정 방식, 자주 묻는 질문을 정리한 가이드를 함께 제공합니다.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+  <div class="ad-slot">광고 영역 (Google AdSense 승인 후 게재)</div>
+</div>
+
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <div class="disclaimer-box" style="max-width:760px;">
+      <span class="mark">ℹ</span>
+      <span>본 사이트의 모든 계산 결과는 공개된 산정 공식을 바탕으로 한 <strong>참고용 추정치</strong>이며, 법적 효력이 없습니다. 실제 수급액은 개인의 소득 이력, 재평가율, 물가상승률 등에 따라 달라질 수 있으므로 정확한 금액은 반드시 국민연금공단, 공무원연금공단, 군인연금과, 사립학교교직원연금공단 등 관할 기관을 통해 확인하시기 바랍니다.</span>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>연금랩</h4>
+        <p>국민연금·공무원연금·군인연금·사학연금의 예상 수급액을 누구나 쉽게 계산해볼 수 있는 무료 정보 제공 사이트입니다. 본 사이트는 특정 금융상품을 권유하거나 투자자문을 제공하지 않습니다.</p>
+      </div>
+      <div>
+        <h4>연금 계산기</h4>
+        <ul>
+          <li><a href="calculators/national-pension.html">국민연금 계산기</a></li>
+          <li><a href="calculators/civil-servant-pension.html">공무원연금 계산기</a></li>
+          <li><a href="calculators/military-pension.html">군인연금 계산기</a></li>
+          <li><a href="calculators/private-school-pension.html">사학연금 계산기</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>사이트 정보</h4>
+        <ul>
+          <li><a href="about.html">사이트 소개</a></li>
+          <li><a href="guide/index.html">연금 가이드</a></li>
+          <li><a href="contact.html">문의하기</a></li>
+          <li><a href="privacy.html">개인정보처리방침</a></li>
+          <li><a href="terms.html">이용약관</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 연금랩. All rights reserved.</span>
+      <span>본 사이트의 계산 결과는 참고용이며 법적 효력이 없습니다.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="js/main.js"></script>
+</body>
+</html>
