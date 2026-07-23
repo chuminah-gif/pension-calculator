@@ -104,10 +104,12 @@ h1, h2, h3, h4 {
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: 9px;
+  border-radius: 50%;
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.55);
   color: #fff;
-  font-size: 1rem;
+  font-size: 1.05rem;
+  font-weight: 800;
 }
 
 .main-nav {
