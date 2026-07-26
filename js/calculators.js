@@ -147,6 +147,76 @@ function calcOccupationalPension(input) {
 }
 
 /* -------------------------------------------------------------------------
+   퇴직연금 DB형 (확정급여형) / 법정 퇴직금
+   근로자퇴직급여보장법 기준 근사식: 퇴직급여 ≈ 평균월급 × 근속연수
+   (정확히는 1일평균임금×30×(재직일수/365)이지만, 월급을 평균임금으로 보고
+   근속연수를 곱하는 표준적인 단순화 방식을 사용합니다.)
+   ------------------------------------------------------------------------- */
+function calcRetirementDB(input) {
+  var avgMonthlyWage = input.avgMonthlyWageManwon * 10000;
+  var years = input.years + input.months / 12;
+
+  if (avgMonthlyWage <= 0 || years <= 0) {
+    return { error: "평균 월급여와 근속기간을 올바르게 입력해 주세요." };
+  }
+
+  var lumpSum = avgMonthlyWage * years;
+  var eligible = years >= 1; // 1년 미만 재직 시 퇴직금 지급 의무 없음
+
+  return {
+    lumpSum: clampNonNegative(lumpSum),
+    years: years,
+    eligible: eligible
+  };
+}
+
+/* -------------------------------------------------------------------------
+   투자형 연금 공통 로직 (퇴직연금 DC형 / IRP / 연금저축 / 개인연금)
+   매년 일정액을 납입해 지정한 예상 수익률로 복리 운용한다고 가정한
+   미래가치(FV) 계산과, 그 금액을 일시금 또는 정해진 기간 동안
+   매월 정액으로 나눠 받을 때의 월 수령액(PMT) 계산을 제공합니다.
+   ------------------------------------------------------------------------- */
+function calcInvestmentAccumulation(input) {
+  var initial = input.initialManwon * 10000;
+  var annualContribution = input.annualContributionManwon * 10000;
+  var years = input.years;
+  var rate = input.annualReturnPercent / 100;
+
+  if (years <= 0 || (initial <= 0 && annualContribution <= 0)) {
+    return { error: "가입기간과 납입액(또는 초기 자산)을 올바르게 입력해 주세요." };
+  }
+
+  var fvInitial = initial * Math.pow(1 + rate, years);
+  var fvContributions;
+  if (Math.abs(rate) < 1e-9) {
+    fvContributions = annualContribution * years;
+  } else {
+    fvContributions = annualContribution * ((Math.pow(1 + rate, years) - 1) / rate);
+  }
+
+  var futureValue = clampNonNegative(fvInitial + fvContributions);
+
+  return {
+    futureValue: futureValue,
+    years: years,
+    annualReturnPercent: input.annualReturnPercent
+  };
+}
+
+// futureValue를 payoutYears 동안 매월 정액으로 나눠 받을 때의 월 지급액(PMT)
+// payoutReturnPercent: 수령 기간 중에도 남은 잔액이 계속 그 수익률로 운용된다는 가정
+function calcMonthlyPayout(futureValue, payoutYears, payoutReturnPercent) {
+  var months = payoutYears * 12;
+  if (months <= 0 || futureValue <= 0) return 0;
+
+  var monthlyRate = (payoutReturnPercent / 100) / 12;
+  if (Math.abs(monthlyRate) < 1e-9) {
+    return futureValue / months;
+  }
+  return futureValue * monthlyRate / (1 - Math.pow(1 + monthlyRate, -months));
+}
+
+/* -------------------------------------------------------------------------
    폼 유틸리티
    ------------------------------------------------------------------------- */
 function getNumberValue(id) {

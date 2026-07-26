@@ -147,6 +147,61 @@ h1, h2, h3, h4 {
   cursor: pointer;
 }
 
+/* ---------- 드롭다운 메뉴 (상위-하위 내비게이션) ---------- */
+.nav-item {
+  position: relative;
+}
+
+.dropdown-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.dropdown-toggle .caret {
+  font-size: 0.7em;
+}
+
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  min-width: 200px;
+  padding: 6px;
+  margin: 4px 0 0;
+  z-index: 200;
+}
+
+.dropdown-menu a {
+  display: block;
+  padding: 9px 10px;
+  border-radius: 6px;
+  color: var(--color-text);
+  font-size: 0.87rem;
+  font-weight: 600;
+}
+
+.dropdown-menu a:hover {
+  background: var(--color-bg);
+  text-decoration: none;
+}
+
+.nav-item.open .dropdown-menu {
+  display: block;
+}
+
+@media (min-width: 861px) {
+  .nav-item:hover .dropdown-menu {
+    display: block;
+  }
+}
+
 @media (max-width: 860px) {
   .main-nav {
     display: none;
@@ -170,6 +225,29 @@ h1, h2, h3, h4 {
   }
   .nav-toggle {
     display: block;
+  }
+  .nav-item {
+    border-bottom: 1px solid var(--color-bg);
+  }
+  .nav-item .dropdown-toggle {
+    justify-content: space-between;
+    padding: 12px 8px;
+    border-bottom: none;
+  }
+  .dropdown-menu {
+    position: static;
+    display: none;
+    box-shadow: none;
+    border: none;
+    margin: 0;
+    padding: 0 0 6px 14px;
+  }
+  .nav-item.open .dropdown-menu {
+    display: block;
+  }
+  .dropdown-menu a {
+    padding: 10px 8px;
+    border-bottom: none;
   }
 }
 

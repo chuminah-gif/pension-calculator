@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>연금저축 계산기 | 예상 적립금 확인 - 연금랩</title>
+<meta name="description" content="초기 자산과 연간 납입액, 예상 수익률을 입력하면 연금저축(신탁·펀드·보험)의 복리 적립금과 예상 수령액을 계산해주는 무료 계산기입니다." />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.css" />
+<link rel="stylesheet" href="../css/style.css" />
+</head>
+<body>
+
+<header class="site-header">
+  <div class="container">
+    <a href="../index.html" class="logo"><span class="logo-mark">&#8361;</span> 연금랩</a>
+    <nav class="main-nav">
+      <a href="../index.html">홈</a>
+      <div class="nav-item">
+        <a href="#" class="dropdown-toggle">공적연금 <span class="caret">▾</span></a>
+        <div class="dropdown-menu">
+          <a href="national-pension.html">국민연금</a>
+          <a href="civil-servant-pension.html">공무원연금</a>
+          <a href="military-pension.html">군인연금</a>
+          <a href="private-school-pension.html">사학연금</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="#" class="dropdown-toggle">퇴직연금 <span class="caret">▾</span></a>
+        <div class="dropdown-menu">
+          <a href="retirement-db.html">DB형(확정급여형)</a>
+          <a href="retirement-dc.html">DC형(확정기여형)</a>
+          <a href="irp.html">IRP</a>
+        </div>
+      </div>
+      <div class="nav-item">
+        <a href="#" class="dropdown-toggle">개인연금 <span class="caret">▾</span></a>
+        <div class="dropdown-menu">
+          <a href="pension-savings.html">연금저축</a>
+          <a href="personal-pension.html">개인연금(연금보험)</a>
+        </div>
+      </div>
+      <a href="../simulation.html">통합시뮬레이션</a>
+      <a href="../guide/index.html">연금가이드</a>
+      <a href="../about.html">사이트소개</a>
+    </nav>
+    <button class="nav-toggle" aria-label="메뉴 열기" aria-expanded="false">☰</button>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container">
+    <p class="breadcrumb"><a href="../index.html">홈</a> / 연금저축 계산기</p>
+    <h1>연금저축 계산기</h1>
+    <p>초기 자산과 연간 납입액, 예상 수익률을 입력하면 복리로 불어난 예상 적립금과 수령 방식별 금액을 계산해 드립니다.</p>
+  </div>
+</section>
+
+<div class="container section">
+  <div class="calc-layout">
+    <div class="card">
+      <h2>정보 입력</h2>
+      <p class="card-sub">입력하신 구체적인 정보는 저장되지 않으며 브라우저 안에서만 계산됩니다.</p>
+
+      <div class="field">
+        <label for="initial">현재 연금저축 잔액 (만원, 없으면 0)</label>
+        <input type="number" id="initial" placeholder="예: 0" min="0" value="0" />
+      </div>
+
+      <div class="field">
+        <label for="annualContribution">연간 납입액 (만원)</label>
+        <input type="number" id="annualContribution" placeholder="예: 600" min="0" />
+        <div class="hint">연금저축은 연 600만원까지 세액공제 대상이며(IRP 합산 시 900만원), 최대 1,800만원까지 납입 가능합니다.</div>
+      </div>
+
+      <div class="field">
+        <label for="years">가입(운용) 기간 (년)</label>
+        <input type="number" id="years" placeholder="예: 20" min="1" max="50" />
+      </div>
+
+      <div class="field">
+        <label for="returnRate">예상 연 수익률 (%)</label>
+        <input type="number" id="returnRate" placeholder="예: 3" step="0.1" value="3" />
+        <div class="hint">신탁형은 낮고 안정적, 펀드형은 시장 상황에 따라 변동, 보험형은 공시이율을 따릅니다.</div>
+      </div>
+
+      <div class="field">
+        <label>수령 방식</label>
+        <div class="radio-group">
+          <label><input type="radio" name="payoutType" value="lump" checked /> 일시금</label>
+          <label><input type="radio" name="payoutType" value="monthly" /> 월 지급(연금형)</label>
+        </div>
+      </div>
+
+      <div class="field" id="payoutYearsField" style="display:none;">
+        <label for="payoutYears">수령 기간 (년)</label>
+        <input type="number" id="payoutYears" placeholder="예: 20" min="1" max="40" value="20" />
+        <div class="hint">수령 기간 동안에도 동일한 예상 수익률로 계속 운용된다고 가정합니다.</div>
+      </div>
+
+      <button class="btn btn-primary" onclick="runSavingsCalc()">예상 적립금 계산하기</button>
+    </div>
+
+    <div class="result-panel">
+      <div class="card" id="resultCard">
+        <div class="result-empty">
+          <div class="icon">🧮</div>
+          <p>왼쪽 정보를 입력하고 계산하기 버튼을 눌러주세요.</p>
+        </div>
+      </div>
+      <div class="ad-slot">광고 영역 (Google AdSense 승인 후 게재)</div>
+    </div>
+  </div>
+</div>
+
+<section class="section" style="padding-top:0;">
+  <div class="container">
+    <div class="card prose">
+      <h2>연금저축 계산 방식 안내</h2>
+      <p>연금저축은 개인이 자율적으로 가입하는 절세형 노후 대비 상품으로, 신탁·펀드·보험 세 가지 형태가 있습니다.</p>
+      <p style="font-family: monospace; background:#f5f7fa; padding:10px 14px; border-radius:8px;">
+        미래 적립금 = 초기 자산 × (1+수익률)^기간 + 연간 납입액 × [((1+수익률)^기간 − 1) ÷ 수익률]
+      </p>
+      <ul>
+        <li>매년 같은 금액을 납입하고, 매년 말 정해진 수익률로 복리 운용된다고 가정한 단순화 계산입니다.</li>
+        <li>월 지급(연금형) 선택 시, 최종 적립금을 지정한 기간 동안 같은 수익률로 계속 운용하면서 매월 정액으로 나눠 받는다고 가정한 근사치입니다.</li>
+      </ul>
+      <div class="info-callout">
+        신탁형은 예금자보호 대상이지만 펀드형·일부 보험형은 원금 손실 가능성이 있습니다. 세액공제·연금소득세 등 세제 효과는 이 계산기에 반영되지 않았습니다.
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer">
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <h4>연금랩</h4>
+        <p>공적연금부터 퇴직연금·개인연금까지, 내 노후 자금을 한눈에 계산해볼 수 있는 무료 정보 제공 사이트입니다. 본 사이트는 특정 금융상품을 권유하거나 투자자문을 제공하지 않습니다.</p>
+      </div>
+      <div>
+        <h4>사이트 정보</h4>
+        <ul>
+          <li><a href="../about.html">사이트 소개</a></li>
+          <li><a href="../guide/index.html">연금 가이드</a></li>
+          <li><a href="../contact.html">문의하기</a></li>
+          <li><a href="../privacy.html">개인정보처리방침</a></li>
+          <li><a href="../terms.html">이용약관</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 연금랩. All rights reserved.</span>
+      <span>본 사이트의 계산 결과는 참고용이며 법적 효력이 없습니다.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="../js/calculators.js"></script>
+<script src="../js/main.js"></script>
+<script>
+document.querySelectorAll('input[name="payoutType"]').forEach(function (radio) {
+  radio.addEventListener("change", function () {
+    document.getElementById("payoutYearsField").style.display =
+      document.querySelector('input[name="payoutType"]:checked').value === "monthly" ? "block" : "none";
+  });
+});
+
+function runSavingsCalc() {
+  var initial = getNumberValue("initial");
+  var annualContribution = getNumberValue("annualContribution");
+  var years = getNumberValue("years");
+  var returnRate = getNumberValue("returnRate");
+  var payoutType = document.querySelector('input[name="payoutType"]:checked').value;
+  var payoutYears = getNumberValue("payoutYears");
+
+  var result = calcInvestmentAccumulation({
+    initialManwon: initial,
+    annualContributionManwon: annualContribution,
+    years: years,
+    annualReturnPercent: returnRate
+  });
+
+  if (result.error) {
+    showError("resultCard", result.error);
+    return;
+  }
+
+  var html = "";
+  html += '<h2 style="margin-bottom:18px;">계산 결과</h2>';
+
+  if (payoutType === "monthly" && payoutYears > 0) {
+    var monthly = calcMonthlyPayout(result.futureValue, payoutYears, returnRate);
+    html += '<div class="result-headline">';
+    html += '<div class="label">예상 월 지급액 (' + payoutYears + '년간, 세전)</div>';
+    html += '<div class="amount">' + formatWon(monthly) + '</div>';
+    html += '<div class="amount-yearly">일시금 환산 약 ' + formatWon(result.futureValue) + '</div>';
+    html += '</div>';
+  } else {
+    html += '<div class="result-headline">';
+    html += '<div class="label">예상 적립금 (일시금, 세전)</div>';
+    html += '<div class="amount">' + formatWon(result.futureValue) + '</div>';
+    html += '</div>';
+  }
+
+  html += '<table class="result-table">';
+  html += '<tr><th>운용 기간</th><td>' + result.years + '년</td></tr>';
+  html += '<tr><th>적용 수익률</th><td>연 ' + result.annualReturnPercent + '%</td></tr>';
+  html += '</table>';
+
+  html += '<div class="disclaimer-box"><span class="mark">ℹ</span><span>본 결과는 입력하신 가정(적립액·수익률)에 기반한 참고용 시뮬레이션이며, 실제 수익률을 보장하지 않습니다. 세액공제·연금소득세 등은 반영되지 않았습니다.</span></div>';
+
+  document.getElementById("resultCard").innerHTML = html;
+}
+</script>
+</body>
+</html>
