@@ -230,6 +230,7 @@ h1, h2, h3, h4 {
     border-bottom: 1px solid var(--color-bg);
   }
   .nav-item .dropdown-toggle {
+    width: 100%;
     justify-content: space-between;
     padding: 12px 8px;
     border-bottom: none;
