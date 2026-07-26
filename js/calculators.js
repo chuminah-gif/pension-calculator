@@ -217,6 +217,125 @@ function calcMonthlyPayout(futureValue, payoutYears, payoutReturnPercent) {
 }
 
 /* -------------------------------------------------------------------------
+   세금 계산 (참고용 근사치)
+   국세청 고시 세율표(2023.1.1 이후 근속연수공제/환산급여공제, 종합소득세
+   기본세율)와 연금소득공제표, 사적연금 원천징수세율을 기준으로 계산합니다.
+   실제 세액은 다른 소득 유무, 각종 소득/세액공제 등에 따라 달라지므로
+   참고용 추정치이며, 정확한 금액은 국세청 홈택스 또는 세무사를 통해
+   확인해야 합니다.
+   ------------------------------------------------------------------------- */
+
+// 종합소득세 기본세율 (누진공제 포함, 지방소득세 별도)
+function progressiveIncomeTax(base) {
+  base = clampNonNegative(base);
+  if (base <= 14000000) return base * 0.06;
+  if (base <= 50000000) return base * 0.15 - 1260000;
+  if (base <= 88000000) return base * 0.24 - 5760000;
+  if (base <= 150000000) return base * 0.35 - 15440000;
+  if (base <= 300000000) return base * 0.38 - 19940000;
+  if (base <= 500000000) return base * 0.40 - 25940000;
+  if (base <= 1000000000) return base * 0.42 - 35940000;
+  return base * 0.45 - 65940000;
+}
+
+// 공적연금소득세 근사 (국민연금·직역연금이 유일한 소득이라고 가정한 단순 추정)
+function calcPublicPensionTax(annualPensionWon) {
+  var w = clampNonNegative(annualPensionWon);
+  var deduction;
+  if (w <= 3500000) deduction = w;
+  else if (w <= 7000000) deduction = 3500000 + (w - 3500000) * 0.4;
+  else if (w <= 14000000) deduction = 4900000 + (w - 7000000) * 0.2;
+  else deduction = 6300000 + (w - 14000000) * 0.1;
+  deduction = Math.min(deduction, 9000000);
+
+  var pensionIncome = clampNonNegative(w - deduction);
+  var basicDeduction = 1500000; // 본인 기본공제만 반영 (단순화)
+  var taxBase = clampNonNegative(pensionIncome - basicDeduction);
+  var incomeTax = progressiveIncomeTax(taxBase);
+  var totalTax = clampNonNegative(incomeTax * 1.1); // 지방소득세 10% 포함
+
+  return { annualTax: totalTax, monthlyTax: totalTax / 12 };
+}
+
+// 퇴직소득세 (근속연수공제 → 환산급여 → 환산급여공제 → 세율 적용, 지방소득세 포함)
+function calcRetirementIncomeTax(lumpSum, years) {
+  lumpSum = clampNonNegative(lumpSum);
+  years = Math.max(1, Math.round(years));
+
+  var serviceDeduction;
+  if (years <= 5) serviceDeduction = years * 1000000;
+  else if (years <= 10) serviceDeduction = 5000000 + (years - 5) * 2000000;
+  else if (years <= 20) serviceDeduction = 15000000 + (years - 10) * 2500000;
+  else serviceDeduction = 40000000 + (years - 20) * 3000000;
+
+  var afterServiceDeduction = clampNonNegative(lumpSum - serviceDeduction);
+  var convertedWage = (afterServiceDeduction / years) * 12;
+
+  var wageDeduction;
+  if (convertedWage <= 8000000) wageDeduction = convertedWage;
+  else if (convertedWage <= 70000000) wageDeduction = 8000000 + (convertedWage - 8000000) * 0.6;
+  else if (convertedWage <= 100000000) wageDeduction = 45200000 + (convertedWage - 70000000) * 0.55;
+  else if (convertedWage <= 300000000) wageDeduction = 61700000 + (convertedWage - 100000000) * 0.45;
+  else wageDeduction = 151700000 + (convertedWage - 300000000) * 0.35;
+
+  var taxBase = clampNonNegative(convertedWage - wageDeduction);
+  var annualizedTax = progressiveIncomeTax(taxBase);
+  var retirementTax = (annualizedTax / 12) * years;
+  var totalTax = clampNonNegative(retirementTax * 1.1); // 지방소득세 10% 포함
+
+  return { tax: totalTax, effectiveRate: lumpSum > 0 ? totalTax / lumpSum : 0 };
+}
+
+// 퇴직연금을 "연금" 형태로 수령할 때의 퇴직소득세 감면 (수령 1~10년차 30%, 11년차 이후 40% 감면)
+function retirementPensionTaxDiscountRate(payoutYears) {
+  return payoutYears <= 10 ? 0.3 : 0.4;
+}
+
+// 사적연금소득세 (연금저축·IRP를 "연금" 형태로 수령 시, 연 1,500만원 이하 분리과세 가정)
+function privatePensionTaxRate(age) {
+  if (age >= 80) return 0.033;
+  if (age >= 70) return 0.044;
+  return 0.055; // 55~69세
+}
+
+// 이자소득세 (개인연금보험 등 10년 미만 유지 시 차익 부분에 과세, 지방소득세 포함)
+var INTEREST_INCOME_TAX_RATE = 0.154;
+
+// 공적연금(국민연금·직역연금) 세전/세후 표 행 HTML
+function publicPensionTaxRowsHtml(monthly) {
+  var tax = calcPublicPensionTax(monthly * 12);
+  var afterTax = clampNonNegative(monthly - tax.monthlyTax);
+  return (
+    '<tr><th>세전 월 수급액</th><td>' + formatWon(monthly) + '</td></tr>' +
+    '<tr><th>예상 세금 (연금소득세, 단독소득 가정)</th><td>-' + formatWon(tax.monthlyTax) + '</td></tr>' +
+    '<tr><th>세후 실수령액 (추정)</th><td><strong>' + formatWon(afterTax) + '</strong></td></tr>'
+  );
+}
+
+// IRP·연금저축 공통: 세전/세후 결과 표 HTML (세액공제받은 사적연금 기준)
+// 연금형 수령: 나이별 연금소득세(3.3~5.5%). 일시금 수령: 기타소득세 16.5% 근사 적용(지방소득세 포함).
+function privatePensionResultTableHtml(futureValue, years, annualReturnPercent, payoutType, payoutYears, returnRate, startAge) {
+  var html = '<table class="result-table">';
+  html += '<tr><th>운용 기간</th><td>' + years + '년</td></tr>';
+  html += '<tr><th>적용 수익률</th><td>연 ' + annualReturnPercent + '%</td></tr>';
+
+  if (payoutType === "monthly" && payoutYears > 0) {
+    var monthly = calcMonthlyPayout(futureValue, payoutYears, returnRate);
+    var rate = privatePensionTaxRate(startAge || 55);
+    var monthlyAfterTax = monthly * (1 - rate);
+    html += '<tr><th>연금소득세율 (만 ' + (startAge || 55) + '세 기준)</th><td>' + (rate * 100).toFixed(1) + '%</td></tr>';
+    html += '<tr><th>세후 월 지급액 (추정)</th><td><strong>' + formatWon(monthlyAfterTax) + '</strong></td></tr>';
+  } else {
+    var otherIncomeTaxRate = 0.165;
+    var afterTax = futureValue * (1 - otherIncomeTaxRate);
+    html += '<tr><th>기타소득세 (일시금 수령, 지방소득세 포함 약 16.5%)</th><td>-' + formatWon(futureValue * otherIncomeTaxRate) + '</td></tr>';
+    html += '<tr><th>세후 실수령액 (추정)</th><td><strong>' + formatWon(afterTax) + '</strong></td></tr>';
+  }
+  html += '</table>';
+  return html;
+}
+
+/* -------------------------------------------------------------------------
    폼 유틸리티
    ------------------------------------------------------------------------- */
 function getNumberValue(id) {

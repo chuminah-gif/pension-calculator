@@ -56,7 +56,7 @@
         <a href="#" class="dropdown-toggle">개인연금 <span class="caret">▾</span></a>
         <div class="dropdown-menu">
           <a href="calculators/pension-savings.html">연금저축</a>
-          <a href="calculators/personal-pension.html">개인연금(연금보험)</a>
+          <a href="calculators/personal-pension.html">연금보험</a>
         </div>
       </div>
       <a href="simulation.html" class="active">통합시뮬레이션</a>
@@ -80,10 +80,14 @@
     <div>
       <div class="card" style="margin-bottom:16px;">
         <h2 style="margin-bottom:4px;">공통 설정</h2>
-        <p class="card-sub">퇴직연금·개인연금처럼 목돈으로 쌓이는 항목을 몇 년에 걸쳐 나눠 받을지 정합니다.</p>
-        <div class="field" style="margin-bottom:0;">
+        <p class="card-sub">퇴직연금·개인연금처럼 목돈으로 쌓이는 항목을 몇 년에 걸쳐, 몇 살부터 나눠 받을지 정합니다.</p>
+        <div class="field">
           <label for="payoutYears">퇴직연금·개인연금 수령 희망 기간 (년)</label>
           <input type="number" id="payoutYears" value="20" min="1" max="40" />
+        </div>
+        <div class="field" style="margin-bottom:0;">
+          <label for="startAge">연금 수령 시작 나이 (IRP·연금저축 세율에 사용)</label>
+          <input type="number" id="startAge" value="55" min="55" max="99" />
         </div>
       </div>
 
@@ -233,7 +237,7 @@
       <div class="sim-section" id="sec-personal">
         <div class="sim-section-head" data-target="sec-personal">
           <input type="checkbox" id="chk-personal" />
-          <h3>개인연금(연금보험)</h3>
+          <h3>연금보험</h3>
           <span class="tag">개인연금</span>
         </div>
         <div class="sim-section-body">
@@ -339,9 +343,10 @@ document.querySelectorAll('input[name="retireType"]').forEach(function (radio) {
 
 function runSimulation() {
   var payoutYears = getNumberValue("payoutYears") || 20;
+  var startAge = getNumberValue("startAge") || 55;
   var rows = [];
-  var totalMonthlyLifetime = 0;
-  var totalMonthlyFixedTerm = 0;
+  var totalMonthlyPreTax = 0;
+  var totalMonthlyAfterTax = 0;
   var totalLumpSum = 0;
   var errors = [];
 
@@ -353,8 +358,11 @@ function runSimulation() {
     });
     if (r.error) { errors.push("국민연금: " + r.error); }
     else {
-      totalMonthlyLifetime += r.monthly;
-      rows.push({ name: "국민연금", type: "평생 매월", amount: r.monthly });
+      var natTax = calcPublicPensionTax(r.monthly * 12);
+      var natAfter = clampNonNegative(r.monthly - natTax.monthlyTax);
+      totalMonthlyPreTax += r.monthly;
+      totalMonthlyAfterTax += natAfter;
+      rows.push({ name: "국민연금", type: "평생 매월", amount: r.monthly, afterTax: natAfter });
     }
   }
 
@@ -367,8 +375,11 @@ function runSimulation() {
     });
     if (r2.error) { errors.push("직역연금: " + r2.error); }
     else {
-      totalMonthlyLifetime += r2.monthly;
-      rows.push({ name: "직역연금(공무원/군인/사학)", type: "평생 매월", amount: r2.monthly });
+      var occTax = calcPublicPensionTax(r2.monthly * 12);
+      var occAfter = clampNonNegative(r2.monthly - occTax.monthlyTax);
+      totalMonthlyPreTax += r2.monthly;
+      totalMonthlyAfterTax += occAfter;
+      rows.push({ name: "직역연금(공무원/군인/사학)", type: "평생 매월", amount: r2.monthly, afterTax: occAfter });
     }
   }
 
@@ -382,32 +393,42 @@ function runSimulation() {
       });
       if (db.error) { errors.push("퇴직연금(DB): " + db.error); }
       else {
+        var dbTax = calcRetirementIncomeTax(db.lumpSum, db.years);
+        var dbDiscount = retirementPensionTaxDiscountRate(payoutYears);
+        var dbAfterLump = clampNonNegative(db.lumpSum - dbTax.tax * (1 - dbDiscount));
         var dbMonthly = calcMonthlyPayout(db.lumpSum, payoutYears, 0);
-        totalMonthlyFixedTerm += dbMonthly;
+        var dbMonthlyAfter = calcMonthlyPayout(dbAfterLump, payoutYears, 0);
+        totalMonthlyPreTax += dbMonthly;
+        totalMonthlyAfterTax += dbMonthlyAfter;
         totalLumpSum += db.lumpSum;
-        rows.push({ name: "퇴직연금 DB형", type: payoutYears + "년간 월지급 환산", amount: dbMonthly, lump: db.lumpSum });
+        rows.push({ name: "퇴직연금 DB형", type: payoutYears + "년간 월지급 환산", amount: dbMonthly, afterTax: dbMonthlyAfter, lump: db.lumpSum });
       }
     } else {
+      var dcRate = getNumberValue("dc-rate");
       var dc = calcInvestmentAccumulation({
         initialManwon: getNumberValue("dc-initial"),
         annualContributionManwon: getNumberValue("dc-contribution"),
         years: getNumberValue("dc-years"),
-        annualReturnPercent: getNumberValue("dc-rate")
+        annualReturnPercent: dcRate
       });
       if (dc.error) { errors.push("퇴직연금(DC): " + dc.error); }
       else {
-        var dcMonthly = calcMonthlyPayout(dc.futureValue, payoutYears, getNumberValue("dc-rate"));
-        totalMonthlyFixedTerm += dcMonthly;
+        var dcTax = calcRetirementIncomeTax(dc.futureValue, dc.years);
+        var dcDiscount = retirementPensionTaxDiscountRate(payoutYears);
+        var dcAfterLump = clampNonNegative(dc.futureValue - dcTax.tax * (1 - dcDiscount));
+        var dcMonthly = calcMonthlyPayout(dc.futureValue, payoutYears, dcRate);
+        var dcMonthlyAfter = calcMonthlyPayout(dcAfterLump, payoutYears, dcRate);
+        totalMonthlyPreTax += dcMonthly;
+        totalMonthlyAfterTax += dcMonthlyAfter;
         totalLumpSum += dc.futureValue;
-        rows.push({ name: "퇴직연금 DC형", type: payoutYears + "년간 월지급 환산", amount: dcMonthly, lump: dc.futureValue });
+        rows.push({ name: "퇴직연금 DC형", type: payoutYears + "년간 월지급 환산", amount: dcMonthly, afterTax: dcMonthlyAfter, lump: dc.futureValue });
       }
     }
   }
 
   [
     { chk: "chk-irp", prefix: "irp", name: "IRP" },
-    { chk: "chk-savings", prefix: "sav", name: "연금저축" },
-    { chk: "chk-personal", prefix: "per", name: "개인연금(연금보험)" }
+    { chk: "chk-savings", prefix: "sav", name: "연금저축" }
   ].forEach(function (item) {
     if (!document.getElementById(item.chk).checked) return;
     var rate = getNumberValue(item.prefix + "-rate");
@@ -419,29 +440,55 @@ function runSimulation() {
     });
     if (r.error) { errors.push(item.name + ": " + r.error); return; }
     var monthly = calcMonthlyPayout(r.futureValue, payoutYears, rate);
-    totalMonthlyFixedTerm += monthly;
+    var monthlyAfter = monthly * (1 - privatePensionTaxRate(startAge));
+    totalMonthlyPreTax += monthly;
+    totalMonthlyAfterTax += monthlyAfter;
     totalLumpSum += r.futureValue;
-    rows.push({ name: item.name, type: payoutYears + "년간 월지급 환산", amount: monthly, lump: r.futureValue });
+    rows.push({ name: item.name, type: payoutYears + "년간 월지급 환산", amount: monthly, afterTax: monthlyAfter, lump: r.futureValue });
   });
+
+  if (document.getElementById("chk-personal").checked) {
+    var perYears = getNumberValue("per-years");
+    var perRate = getNumberValue("per-rate");
+    var per = calcInvestmentAccumulation({
+      initialManwon: getNumberValue("per-initial"),
+      annualContributionManwon: getNumberValue("per-contribution"),
+      years: perYears,
+      annualReturnPercent: perRate
+    });
+    if (per.error) { errors.push("연금보험: " + per.error); }
+    else {
+      var perPrincipal = getNumberValue("per-initial") * 10000 + getNumberValue("per-contribution") * 10000 * perYears;
+      var perGain = clampNonNegative(per.futureValue - perPrincipal);
+      var perTaxFree = perYears >= 10;
+      var perTax = perTaxFree ? 0 : perGain * INTEREST_INCOME_TAX_RATE;
+      var perAfterLump = clampNonNegative(per.futureValue - perTax);
+      var perMonthly = calcMonthlyPayout(per.futureValue, payoutYears, perRate);
+      var perMonthlyAfter = calcMonthlyPayout(perAfterLump, payoutYears, perRate);
+      totalMonthlyPreTax += perMonthly;
+      totalMonthlyAfterTax += perMonthlyAfter;
+      totalLumpSum += per.futureValue;
+      rows.push({ name: "연금보험", type: payoutYears + "년간 월지급 환산", amount: perMonthly, afterTax: perMonthlyAfter, lump: per.futureValue });
+    }
+  }
 
   if (rows.length === 0) {
     showError("resultCard", errors.length ? errors.join(" / ") : "최소 하나 이상의 연금 항목을 체크하고 정보를 입력해 주세요.");
     return;
   }
 
-  var grandTotalMonthly = totalMonthlyLifetime + totalMonthlyFixedTerm;
-
   var html = "";
   html += '<h2 style="margin-bottom:18px;">통합 시뮬레이션 결과</h2>';
 
   html += '<div class="summary-grid">';
-  html += '<div class="summary-box"><div class="label">총 예상 월 수령액 (세전)</div><div class="amount">' + formatWon(grandTotalMonthly) + '</div></div>';
-  html += '<div class="summary-box"><div class="label">퇴직연금·개인연금 일시금 합계</div><div class="amount">' + formatWon(totalLumpSum) + '</div></div>';
+  html += '<div class="summary-box"><div class="label">총 예상 월 수령액 (세전)</div><div class="amount">' + formatWon(totalMonthlyPreTax) + '</div></div>';
+  html += '<div class="summary-box"><div class="label">총 예상 월 수령액 (세후 추정)</div><div class="amount">' + formatWon(totalMonthlyAfterTax) + '</div></div>';
   html += '</div>';
+  html += '<p style="font-size:0.85rem; color:var(--color-text-faint); margin:-8px 0 18px;">퇴직연금·개인연금 일시금 합계(세전): ' + formatWon(totalLumpSum) + '</p>';
 
-  html += '<table class="breakdown-table"><tr><th>항목</th><th>수령 방식</th><th>월 환산액</th></tr>';
+  html += '<table class="breakdown-table"><tr><th>항목</th><th>수령 방식</th><th>월 세전</th><th>월 세후</th></tr>';
   rows.forEach(function (row) {
-    html += '<tr><td>' + row.name + '</td><td>' + row.type + '</td><td>' + formatWon(row.amount) + '</td></tr>';
+    html += '<tr><td>' + row.name + '</td><td>' + row.type + '</td><td>' + formatWon(row.amount) + '</td><td>' + formatWon(row.afterTax) + '</td></tr>';
   });
   html += '</table>';
 
@@ -449,7 +496,7 @@ function runSimulation() {
     html += '<div class="disclaimer-box" style="margin-top:14px;"><span class="mark">⚠</span><span>일부 항목은 입력값이 부족해 계산에서 제외되었습니다: ' + errors.join(" / ") + '</span></div>';
   }
 
-  html += '<div class="disclaimer-box" style="margin-top:14px;"><span class="mark">ℹ</span><span>공적연금(국민연금·직역연금)은 평생 지급되지만, 퇴직연금·개인연금은 설정하신 ' + payoutYears + '년 동안만 지급된다고 가정한 값입니다. 두 수치를 단순 합산했으므로 ' + payoutYears + '년 이후에는 총 월 수령액이 공적연금 부분만 남게 됩니다. 세금은 반영되지 않은 참고용 추정치입니다.</span></div>';
+  html += '<div class="disclaimer-box" style="margin-top:14px;"><span class="mark">ℹ</span><span>공적연금(국민연금·직역연금)은 평생 지급되지만, 퇴직연금·개인연금은 설정하신 ' + payoutYears + '년 동안만 지급된다고 가정한 값입니다. 세후 금액은 각 연금별 세제(공적연금소득세·퇴직소득세·사적연금소득세·이자소득세 등)를 항목별로 근사 적용한 참고용 추정치이며, 다른 소득이 있거나 개별 상황이 다르면 실제 세액과 차이가 클 수 있습니다. 정확한 세액은 국세청 홈택스 또는 세무사를 통해 확인하세요.</span></div>';
 
   document.getElementById("resultCard").innerHTML = html;
 }

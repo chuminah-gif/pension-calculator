@@ -36,7 +36,7 @@
         <a href="#" class="dropdown-toggle">개인연금 <span class="caret">▾</span></a>
         <div class="dropdown-menu">
           <a href="pension-savings.html">연금저축</a>
-          <a href="personal-pension.html">개인연금(연금보험)</a>
+          <a href="personal-pension.html">연금보험</a>
         </div>
       </div>
       <a href="../simulation.html">통합시뮬레이션</a>
@@ -187,29 +187,44 @@ function runDCCalc() {
     return;
   }
 
+  var retirementTax = calcRetirementIncomeTax(result.futureValue, result.years);
+
   var html = "";
   html += '<h2 style="margin-bottom:18px;">계산 결과</h2>';
 
   if (payoutType === "monthly" && payoutYears > 0) {
+    var discountRate = retirementPensionTaxDiscountRate(payoutYears);
+    var discountedTax = retirementTax.tax * (1 - discountRate);
+    var afterTaxLump = clampNonNegative(result.futureValue - discountedTax);
     var monthly = calcMonthlyPayout(result.futureValue, payoutYears, returnRate);
+    var monthlyAfterTax = calcMonthlyPayout(afterTaxLump, payoutYears, returnRate);
     html += '<div class="result-headline">';
     html += '<div class="label">예상 월 지급액 (' + payoutYears + '년간, 세전)</div>';
     html += '<div class="amount">' + formatWon(monthly) + '</div>';
-    html += '<div class="amount-yearly">일시금 환산 약 ' + formatWon(result.futureValue) + '</div>';
+    html += '<div class="amount-yearly">세후 약 ' + formatWon(monthlyAfterTax) + ' / 세전 일시금 환산 ' + formatWon(result.futureValue) + '</div>';
     html += '</div>';
+    html += '<table class="result-table">';
+    html += '<tr><th>운용 기간</th><td>' + result.years + '년</td></tr>';
+    html += '<tr><th>적용 수익률</th><td>연 ' + result.annualReturnPercent + '%</td></tr>';
+    html += '<tr><th>퇴직소득세(연금수령 감면 ' + (discountRate * 100) + '% 적용 후)</th><td>-' + formatWon(discountedTax) + '</td></tr>';
+    html += '<tr><th>세후 월 지급액 (추정)</th><td><strong>' + formatWon(monthlyAfterTax) + '</strong></td></tr>';
+    html += '</table>';
   } else {
+    var afterTaxLumpSimple = clampNonNegative(result.futureValue - retirementTax.tax);
     html += '<div class="result-headline">';
     html += '<div class="label">예상 적립금 (일시금, 세전)</div>';
     html += '<div class="amount">' + formatWon(result.futureValue) + '</div>';
+    html += '<div class="amount-yearly">세후 약 ' + formatWon(afterTaxLumpSimple) + '</div>';
     html += '</div>';
+    html += '<table class="result-table">';
+    html += '<tr><th>운용 기간</th><td>' + result.years + '년</td></tr>';
+    html += '<tr><th>적용 수익률</th><td>연 ' + result.annualReturnPercent + '%</td></tr>';
+    html += '<tr><th>퇴직소득세 (지방소득세 포함)</th><td>-' + formatWon(retirementTax.tax) + '</td></tr>';
+    html += '<tr><th>세후 실수령액 (추정)</th><td><strong>' + formatWon(afterTaxLumpSimple) + '</strong></td></tr>';
+    html += '</table>';
   }
 
-  html += '<table class="result-table">';
-  html += '<tr><th>운용 기간</th><td>' + result.years + '년</td></tr>';
-  html += '<tr><th>적용 수익률</th><td>연 ' + result.annualReturnPercent + '%</td></tr>';
-  html += '</table>';
-
-  html += '<div class="disclaimer-box"><span class="mark">ℹ</span><span>본 결과는 입력하신 가정(적립액·수익률)에 기반한 참고용 시뮬레이션이며, 실제 수익률을 보장하지 않습니다. 세금(연금소득세 등)은 반영되지 않았습니다.</span></div>';
+  html += '<div class="disclaimer-box"><span class="mark">ℹ</span><span>본 결과는 입력하신 가정(적립액·수익률)에 기반한 참고용 시뮬레이션이며, 실제 수익률을 보장하지 않습니다. 세금은 DC 적립금 전체를 퇴직소득으로 간주해 퇴직소득세 산식을 근사 적용한 것으로, 실제로는 회사 적립분과 개인 추가납입·운용수익 부분의 과세 방식이 다를 수 있습니다. 정확한 세액은 국세청 홈택스를 통해 확인하세요.</span></div>';
 
   document.getElementById("resultCard").innerHTML = html;
 }

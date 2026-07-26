@@ -36,7 +36,7 @@
         <a href="#" class="dropdown-toggle">개인연금 <span class="caret">▾</span></a>
         <div class="dropdown-menu">
           <a href="pension-savings.html">연금저축</a>
-          <a href="personal-pension.html">개인연금(연금보험)</a>
+          <a href="personal-pension.html">연금보험</a>
         </div>
       </div>
       <a href="../simulation.html">통합시뮬레이션</a>
@@ -95,6 +95,12 @@
         <label for="payoutYears">수령 기간 (년)</label>
         <input type="number" id="payoutYears" placeholder="예: 20" min="1" max="40" value="20" />
         <div class="hint">수령 기간 동안에도 동일한 예상 수익률로 계속 운용된다고 가정합니다.</div>
+      </div>
+
+      <div class="field" id="ageField" style="display:none; margin-bottom:0;">
+        <label for="startAge">연금 수령 시작 나이</label>
+        <input type="number" id="startAge" placeholder="예: 55" min="55" max="99" value="55" />
+        <div class="hint">사적연금소득세율은 연령에 따라 55~69세 5.5%, 70~79세 4.4%, 80세 이상 3.3%로 낮아집니다.</div>
       </div>
 
       <button class="btn btn-primary" onclick="runSavingsCalc()">예상 적립금 계산하기</button>
@@ -161,8 +167,9 @@
 <script>
 document.querySelectorAll('input[name="payoutType"]').forEach(function (radio) {
   radio.addEventListener("change", function () {
-    document.getElementById("payoutYearsField").style.display =
-      document.querySelector('input[name="payoutType"]:checked').value === "monthly" ? "block" : "none";
+    var isMonthly = document.querySelector('input[name="payoutType"]:checked').value === "monthly";
+    document.getElementById("payoutYearsField").style.display = isMonthly ? "block" : "none";
+    document.getElementById("ageField").style.display = isMonthly ? "block" : "none";
   });
 });
 
@@ -173,6 +180,7 @@ function runSavingsCalc() {
   var returnRate = getNumberValue("returnRate");
   var payoutType = document.querySelector('input[name="payoutType"]:checked').value;
   var payoutYears = getNumberValue("payoutYears");
+  var startAge = getNumberValue("startAge") || 55;
 
   var result = calcInvestmentAccumulation({
     initialManwon: initial,
@@ -191,24 +199,24 @@ function runSavingsCalc() {
 
   if (payoutType === "monthly" && payoutYears > 0) {
     var monthly = calcMonthlyPayout(result.futureValue, payoutYears, returnRate);
+    var monthlyAfterTax = monthly * (1 - privatePensionTaxRate(startAge));
     html += '<div class="result-headline">';
     html += '<div class="label">예상 월 지급액 (' + payoutYears + '년간, 세전)</div>';
     html += '<div class="amount">' + formatWon(monthly) + '</div>';
-    html += '<div class="amount-yearly">일시금 환산 약 ' + formatWon(result.futureValue) + '</div>';
+    html += '<div class="amount-yearly">세후 약 ' + formatWon(monthlyAfterTax) + ' / 세전 일시금 환산 ' + formatWon(result.futureValue) + '</div>';
     html += '</div>';
   } else {
+    var afterTax = result.futureValue * (1 - 0.165);
     html += '<div class="result-headline">';
     html += '<div class="label">예상 적립금 (일시금, 세전)</div>';
     html += '<div class="amount">' + formatWon(result.futureValue) + '</div>';
+    html += '<div class="amount-yearly">세후 약 ' + formatWon(afterTax) + '</div>';
     html += '</div>';
   }
 
-  html += '<table class="result-table">';
-  html += '<tr><th>운용 기간</th><td>' + result.years + '년</td></tr>';
-  html += '<tr><th>적용 수익률</th><td>연 ' + result.annualReturnPercent + '%</td></tr>';
-  html += '</table>';
+  html += privatePensionResultTableHtml(result.futureValue, result.years, result.annualReturnPercent, payoutType, payoutYears, returnRate, startAge);
 
-  html += '<div class="disclaimer-box"><span class="mark">ℹ</span><span>본 결과는 입력하신 가정(적립액·수익률)에 기반한 참고용 시뮬레이션이며, 실제 수익률을 보장하지 않습니다. 세액공제·연금소득세 등은 반영되지 않았습니다.</span></div>';
+  html += '<div class="disclaimer-box"><span class="mark">ℹ</span><span>본 결과는 입력하신 가정(적립액·수익률)에 기반한 참고용 시뮬레이션이며, 실제 수익률을 보장하지 않습니다. 세금은 세액공제를 받은 재원 기준이며, 총 사적연금액이 연 1,500만원을 초과하면 종합과세로 전환될 수 있습니다. 정확한 세액은 국세청 홈택스를 통해 확인하세요.</span></div>';
 
   document.getElementById("resultCard").innerHTML = html;
 }

@@ -36,7 +36,7 @@
         <a href="#" class="dropdown-toggle">개인연금 <span class="caret">▾</span></a>
         <div class="dropdown-menu">
           <a href="pension-savings.html">연금저축</a>
-          <a href="personal-pension.html">개인연금(연금보험)</a>
+          <a href="personal-pension.html">연금보험</a>
         </div>
       </div>
       <a href="../simulation.html">통합시뮬레이션</a>
@@ -172,32 +172,46 @@ function runDBCalc() {
     return;
   }
 
+  var retirementTax = calcRetirementIncomeTax(result.lumpSum, result.years);
+
   var html = "";
   html += '<h2 style="margin-bottom:18px;">계산 결과</h2>';
 
   if (payoutType === "monthly" && payoutYears > 0) {
+    var discountRate = retirementPensionTaxDiscountRate(payoutYears);
+    var discountedTax = retirementTax.tax * (1 - discountRate);
+    var afterTaxLump = clampNonNegative(result.lumpSum - discountedTax);
     var monthly = calcMonthlyPayout(result.lumpSum, payoutYears, 0);
+    var monthlyAfterTax = calcMonthlyPayout(afterTaxLump, payoutYears, 0);
     html += '<div class="result-headline">';
     html += '<div class="label">예상 월 지급액 (' + payoutYears + '년간, 세전)</div>';
     html += '<div class="amount">' + formatWon(monthly) + '</div>';
-    html += '<div class="amount-yearly">일시금 환산 약 ' + formatWon(result.lumpSum) + '</div>';
+    html += '<div class="amount-yearly">세후 약 ' + formatWon(monthlyAfterTax) + ' / 세전 일시금 환산 ' + formatWon(result.lumpSum) + '</div>';
     html += '</div>';
+    html += '<table class="result-table">';
+    html += '<tr><th>근속기간</th><td>' + Math.floor(result.years) + '년 ' + Math.round((result.years % 1) * 12) + '개월</td></tr>';
+    html += '<tr><th>퇴직소득세(연금수령 감면 ' + (discountRate * 100) + '% 적용 후)</th><td>-' + formatWon(discountedTax) + '</td></tr>';
+    html += '<tr><th>세후 월 지급액 (추정)</th><td><strong>' + formatWon(monthlyAfterTax) + '</strong></td></tr>';
+    html += '</table>';
   } else {
+    var afterTaxLumpSimple = clampNonNegative(result.lumpSum - retirementTax.tax);
     html += '<div class="result-headline">';
     html += '<div class="label">예상 퇴직급여 (일시금, 세전)</div>';
     html += '<div class="amount">' + formatWon(result.lumpSum) + '</div>';
+    html += '<div class="amount-yearly">세후 약 ' + formatWon(afterTaxLumpSimple) + '</div>';
     html += '</div>';
+    html += '<table class="result-table">';
+    html += '<tr><th>근속기간</th><td>' + Math.floor(result.years) + '년 ' + Math.round((result.years % 1) * 12) + '개월</td></tr>';
+    html += '<tr><th>퇴직소득세 (지방소득세 포함)</th><td>-' + formatWon(retirementTax.tax) + ' (실효세율 ' + (retirementTax.effectiveRate * 100).toFixed(1) + '%)</td></tr>';
+    html += '<tr><th>세후 실수령액 (추정)</th><td><strong>' + formatWon(afterTaxLumpSimple) + '</strong></td></tr>';
+    html += '</table>';
   }
-
-  html += '<table class="result-table">';
-  html += '<tr><th>근속기간</th><td>' + Math.floor(result.years) + '년 ' + Math.round((result.years % 1) * 12) + '개월</td></tr>';
-  html += '</table>';
 
   if (!result.eligible) {
     html += '<div class="disclaimer-box" style="margin-bottom:14px;"><span class="mark">⚠</span><span>근속기간 1년 미만은 법적으로 퇴직급여 지급 의무가 없습니다.</span></div>';
   }
 
-  html += '<div class="disclaimer-box"><span class="mark">ℹ</span><span>본 결과는 단순화한 참고용 추정치입니다. 실제 퇴직급여는 회사 인사팀 또는 퇴직연금 사업자를 통해 확인하세요.</span></div>';
+  html += '<div class="disclaimer-box"><span class="mark">ℹ</span><span>세금은 국세청 고시 근속연수공제·환산급여공제·종합소득세 기본세율을 적용한 퇴직소득세 근사치이며, 연금형 수령 시 30~40% 세액 감면을 반영했습니다. 실제 퇴직급여와 세액은 회사 인사팀, 국세청 홈택스를 통해 확인하세요.</span></div>';
 
   document.getElementById("resultCard").innerHTML = html;
 }

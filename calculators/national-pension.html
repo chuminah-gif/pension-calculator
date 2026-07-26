@@ -38,7 +38,7 @@
         <a href="#" class="dropdown-toggle">개인연금 <span class="caret">▾</span></a>
         <div class="dropdown-menu">
           <a href="pension-savings.html">연금저축</a>
-          <a href="personal-pension.html">개인연금(연금보험)</a>
+          <a href="personal-pension.html">연금보험</a>
         </div>
       </div>
       <a href="../simulation.html">통합시뮬레이션</a>
@@ -185,13 +185,14 @@ function runNationalCalc() {
   if (startAge) {
     html += '<tr><th>예상 수급개시연령</th><td>만 ' + startAge + '세</td></tr>';
   }
+  html += publicPensionTaxRowsHtml(result.monthly);
   html += '</table>';
 
   if (!result.eligible) {
     html += '<div class="disclaimer-box" style="margin-bottom:14px;"><span class="mark">⚠</span><span>국민연금 노령연금은 최소 가입기간 10년(120개월)을 채워야 수급 자격이 발생합니다. 입력하신 가입기간은 이에 미달하며, 미달 시에는 반환일시금 등 다른 방식으로 지급될 수 있습니다.</span></div>';
   }
 
-  html += '<div class="disclaimer-box"><span class="mark">ℹ</span><span>본 결과는 공개된 산정식을 단순화한 참고용 추정치입니다. 실제 수급액과 다를 수 있으니 국민연금공단을 통해 정확한 금액을 확인하세요.</span></div>';
+  html += '<div class="disclaimer-box"><span class="mark">ℹ</span><span>본 결과는 공개된 산정식을 단순화한 참고용 추정치입니다. 세후 금액은 이 연금이 유일한 소득이라고 가정한 근사치이며, 다른 소득이 있으면 세율 구간이 달라질 수 있습니다. 정확한 금액은 국민연금공단 및 국세청을 통해 확인하세요.</span></div>';
 
   document.getElementById("resultCard").innerHTML = html;
 }
