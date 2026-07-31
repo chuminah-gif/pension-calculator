@@ -654,6 +654,12 @@ h1, h2, h3, h4 {
   font-size: 0.97rem;
 }
 
+.prose p a, .prose li a, .prose td a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 600;
+}
+
 .prose ul, .prose ol {
   padding-left: 22px;
 }
