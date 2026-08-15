@@ -597,6 +597,34 @@ h1, h2, h3, h4 {
   color: var(--color-text);
 }
 
+/* 통합 시뮬레이션 결과의 4열 비교표: min-width가 전혀 없어서 "수령 방식" 열이
+   과도하게 눌려 헤더 텍스트가 한 글자씩 세로로 쪼개지던 문제 보정. 넘치면
+   가로 스크롤되게 두어 다른 열을 억지로 더 눌리게 하지 않는다. */
+.breakdown-table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  margin-bottom: 18px;
+}
+
+.breakdown-table th,
+.breakdown-table td {
+  text-align: left;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--color-border);
+  overflow-wrap: anywhere;
+  min-width: 4.4em;
+}
+
+.breakdown-table th:first-child,
+.breakdown-table td:first-child {
+  min-width: 6.5em;
+}
+
 .disclaimer-box {
   background: var(--color-warning-bg);
   border: 1px solid var(--color-warning-border);
