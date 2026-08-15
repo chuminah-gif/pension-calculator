@@ -494,9 +494,12 @@ function runSimulation() {
   html += '</div>';
   html += '<p style="font-size:0.85rem; color:var(--color-text-faint); margin:-8px 0 18px;">퇴직연금·개인연금 일시금 합계(세전): ' + formatWon(totalLumpSum) + '</p>';
 
-  html += '<div class="table-scroll-wrap"><table class="breakdown-table"><tr><th>항목</th><th>수령 방식</th><th>월 세전</th><th>월 세후</th></tr>';
+  html += '<div class="table-scroll-wrap"><table class="breakdown-table"><tr><th>항목</th><th>수령 방식</th><th>월 수령액</th></tr>';
   rows.forEach(function (row) {
-    html += '<tr><td>' + row.name + '</td><td>' + row.type + '</td><td>' + formatWon(row.amount) + '</td><td>' + formatWon(row.afterTax) + '</td></tr>';
+    html += '<tr><td>' + row.name + '</td><td>' + row.type + '</td><td class="amount-cell">' +
+      '<div class="amount-pre"><span class="amount-tag">세전</span>' + formatWon(row.amount) + '</div>' +
+      '<div class="amount-after"><span class="amount-tag">세후</span>' + formatWon(row.afterTax) + '</div>' +
+      '</td></tr>';
   });
   html += '</table></div>';
 
