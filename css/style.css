@@ -380,6 +380,16 @@ h1, h2, h3, h4 {
   align-items: start;
 }
 
+/* 그리드 아이템의 기본 min-width는 auto(= 내용의 최소 폭)라, 계산 결과가
+   채워지기 전에는 문제없다가 결과 패널 안에 폭을 줄이기 싫어하는 내용이
+   생기면 이 열 전체(모바일에서는 1fr 트랙 전체, 왼쪽 입력 영역까지 포함)가
+   그 폭에 맞춰 카드 밖으로 넓어지던 문제. simulation.html에서 실제로
+   재현됨 — 계산 전엔 정상, "종합 계산하기" 후 왼쪽 버튼까지 오른쪽으로
+   밀려나며 넘쳤음. */
+.calc-layout > * {
+  min-width: 0;
+}
+
 @media (max-width: 900px) {
   .calc-layout {
     grid-template-columns: 1fr !important;
