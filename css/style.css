@@ -755,6 +755,7 @@ h1, h2, h3, h4 {
 
 /* ---------- 광고 슬롯 ---------- */
 .ad-slot {
+  display: none;
   background: #f0f2f5;
   border: 1px dashed var(--color-border);
   border-radius: var(--radius-md);
