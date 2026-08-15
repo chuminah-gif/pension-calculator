@@ -634,13 +634,24 @@ h1, h2, h3, h4 {
 }
 
 .breakdown-table th:first-child,
-.breakdown-table td:first-child {
-  overflow-wrap: anywhere;
-  min-width: 4.6em;
+.breakdown-table td:first-child,
+.breakdown-table th:nth-child(2),
+.breakdown-table td:nth-child(2) {
+  overflow-wrap: break-word;
+  word-break: keep-all;
+  min-width: 3.8em;
 }
 
-.breakdown-table th:not(:first-child),
-.breakdown-table td:not(:first-child) {
+/* 금액 열(세전/세후)만 숫자라 중간에서 끊기면 안 되므로 nowrap 유지.
+   "수령 방식"은 "20년간 월지급 환산"처럼 길어질 수 있는데, 이걸도 nowrap으로
+   묶었더니 연금저축·IRP·연금보험처럼 문구가 긴 항목에서 표 전체가 카드보다
+   넓어져 가로 스크롤이 강제됐다. 띄어쓰기 단위(20년간 / 월지급 / 환산)로는
+   자연스럽게 줄바꿈되게 풀어서, 숫자만 안 끊기고 문구는 필요하면 여러 줄로
+   내려가며 스크롤 없이 카드 폭 안에 들어가게 함. */
+.breakdown-table th:nth-child(3),
+.breakdown-table td:nth-child(3),
+.breakdown-table th:nth-child(4),
+.breakdown-table td:nth-child(4) {
   white-space: nowrap;
 }
 
