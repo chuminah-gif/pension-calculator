@@ -20,8 +20,6 @@
   .sim-section.active .sim-section-head { border-bottom: 1px solid var(--color-border); }
   .sim-subtype { margin-bottom: 14px; }
   .sim-subtype label { margin-right: 14px; font-size: 0.88rem; font-weight: 600; }
-  .breakdown-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; margin-top: 8px; }
-  .breakdown-table th, .breakdown-table td { padding: 10px 8px; border-bottom: 1px solid var(--color-border); text-align: left; }
   .breakdown-table td:last-child, .breakdown-table th:last-child { text-align: right; }
   .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
   @media (max-width: 700px) { .summary-grid { grid-template-columns: 1fr; } }
@@ -497,11 +495,11 @@ function runSimulation() {
   html += '</div>';
   html += '<p style="font-size:0.85rem; color:var(--color-text-faint); margin:-8px 0 18px;">퇴직연금·개인연금 일시금 합계(세전): ' + formatWon(totalLumpSum) + '</p>';
 
-  html += '<table class="breakdown-table"><tr><th>항목</th><th>수령 방식</th><th>월 세전</th><th>월 세후</th></tr>';
+  html += '<div class="table-scroll-wrap"><table class="breakdown-table"><tr><th>항목</th><th>수령 방식</th><th>월 세전</th><th>월 세후</th></tr>';
   rows.forEach(function (row) {
     html += '<tr><td>' + row.name + '</td><td>' + row.type + '</td><td>' + formatWon(row.amount) + '</td><td>' + formatWon(row.afterTax) + '</td></tr>';
   });
-  html += '</table>';
+  html += '</table></div>';
 
   if (errors.length) {
     html += '<div class="disclaimer-box" style="margin-top:14px;"><span class="mark">⚠</span><span>일부 항목은 입력값이 부족해 계산에서 제외되었습니다: ' + errors.join(" / ") + '</span></div>';
