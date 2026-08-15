@@ -629,14 +629,14 @@ h1, h2, h3, h4 {
 .breakdown-table th,
 .breakdown-table td {
   text-align: left;
-  padding: 8px 6px;
+  padding: 8px 4px;
   border-bottom: 1px solid var(--color-border);
 }
 
 .breakdown-table th:first-child,
 .breakdown-table td:first-child {
   overflow-wrap: anywhere;
-  min-width: 5em;
+  min-width: 4.6em;
 }
 
 .breakdown-table th:not(:first-child),
